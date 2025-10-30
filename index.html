@@ -53,7 +53,67 @@
 
 <script>
 const ROUTE=[
-   {"name":"高知城（スタート）","lat":33.560674,"lng":133.531532,"kind":"start","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Kochi_Castle_Main_Tower.jpg/640px-Kochi_Castle_Main_Tower.jpg","info":"江戸時代の藩主山内氏による城郭。天守・本丸御殿などが現存し、城下町高知の中心。","category":"歴史建築","event":{"type":"info"}},
+   {
+    "name":"明善学舎跡（旭地区）",
+    "lat":33.5600,
+    "lng":133.5300,
+    "kind":"checkpoint",
+    "img":"https://upload.wikimedia.org/wikipedia/commons/thumb/…/640px-Kochi_Castle_History_Museum.jpg",  // 仮画像（要差し替え）
+    "info":"明治6年創立の「明善舎」が前身。現在の高知市立旭小学校につながる教育史跡。:contentReference[oaicite:1]{index=1}",
+    "category":"教育史",
+    "event":{"type":"info"}
+  },
+  {
+    "name":"杓田本宮神社（旭地区）",
+    "lat":33.560150,
+    "lng":133.509400,
+    "kind":"checkpoint",
+    "img":"",  // 画像未確認
+    "info":"鏡川北詰に位置し、古くからこの地の社として地域の宗教・文化拠点。:contentReference[oaicite:2]{index=2}",
+    "category":"神社／宗教文化",
+    "event":{"type":"info"}
+  },
+  {
+    "name":"旭町一丁目停留場（路面電車）",
+    "lat":33.5567417,
+    "lng":133.5138139,
+    "kind":"checkpoint",
+    "img":"",  // 画像未確認
+    "info":"1906年（明治39年）開業の路面電車停留場。地域交通の歴史を今に伝える。:contentReference[oaicite:3]{index=3}",
+    "category":"交通史",
+    "event":{"type":"info"}
+  },
+  {
+    "name":"鏡川（旭地区流域）",
+    "lat":33.5600,
+    "lng":133.5300,
+    "kind":"checkpoint",
+    "img":"",  // 画像未確認
+    "info":"“我が影を映すがごとし”と称された清流。環境省「平成の名水百選」にも選定。:contentReference[oaicite:4]{index=4}",
+    "category":"自然／景観",
+    "event":{"type":"info"}
+  },
+  {
+    "name":"旭町一丁目地区（高知市）",
+    "lat":33.556541,
+    "lng":133.513653,
+    "kind":"checkpoint",
+    "img":"",  // 画像未確認
+    "info":"高知市旭町一丁目の町域。歴史地名として「杓田村」などを包含する旧村領域のひとつ。:contentReference[oaicite:5]{index=5}",
+    "category":"地域史／地名",
+    "event":{"type":"info"}
+  },
+  {
+    "name":"吉井源太翁生家（旭町周辺）",
+    "lat":33.555685,
+    "lng":133.510717,
+    "kind":"checkpoint",
+    "img":"",  // 画像未確認
+    "info":"土佐和紙技術発展に尽力した吉井源太翁の生家跡。地域産業・文化の象徴。:contentReference[oaicite:6]{index=6}",
+    "category":"産業文化",
+    "event":{"type":"info"}
+  },
+  {"name":"高知城（スタート）","lat":33.560674,"lng":133.531532,"kind":"start","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Kochi_Castle_Main_Tower.jpg/640px-Kochi_Castle_Main_Tower.jpg","info":"江戸時代の藩主山内氏による城郭。天守・本丸御殿などが現存し、城下町高知の中心。","category":"歴史建築","event":{"type":"info"}},
   {"name":"高知城歴史博物館","lat":33.5609,"lng":133.5325,"kind":"checkpoint","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Kochi_Castle_History_Museum.jpg/640px-Kochi_Castle_History_Museum.jpg","info":"土佐藩の歴史や文化を学べる博物館。","category":"博物館／歴史","event":{"type":"info"}},
   {"name":"城西公園","lat":33.5632,"lng":133.5318,"kind":"checkpoint","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Josei_Park_Kochi.jpg/640px-Josei_Park_Kochi.jpg","info":"高知城の西側に広がる市民公園。桜の名所として人気。","category":"公園／休憩","event":{"type":"chance"}},
   {"name":"土佐の日曜市","lat":33.561474,"lng":133.538004,"kind":"checkpoint","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Tosa_Nichiyouichi.jpg/640px-Tosa_Nichiyouichi.jpg","info":"元禄3年から続く街路市。地元の野菜や金物が並ぶ。","category":"市場／生活文化","event":{"type":"buy","price":500,"item":"新鮮野菜セット"}},
