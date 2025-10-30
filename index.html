@@ -1,26 +1,36 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>高知市すごろく（最終版）</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    html,body{height:100%;margin:0;font-family:"Noto Sans JP",sans-serif;background:#0b1324;color:#fff;}
-    .app{display:grid;grid-template-columns:360px 1fr;height:100%;}
-    .panel{background:#111a33;padding:12px;display:flex;flex-direction:column;border-right:2px solid #1e2a4a;}
-    #map{width:100%;height:100%;}
-    h2{margin:0 0 10px;color:#7cc7ff;}
-    button{background:#1779ff;border:none;color:white;padding:10px 14px;border-radius:8px;margin:5px 5px 0 0;font-weight:bold;cursor:pointer;}
-    button:hover{opacity:0.9;}
-    #log{background:#0f1730;flex:1;overflow-y:auto;margin-top:10px;border-radius:8px;padding:8px;font-size:14px;color:#a9c4ff;}
-    /* サイコロ表示 */
-    #diceDisplay{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.6);padding:40px 70px;border-radius:20px;font-size:64px;font-weight:bold;display:none;z-index:9999;}
-    /* 全画面画像モーダル */
-    #photoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:9999;}
-    #photoModal img{max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,.5);}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>高知市すごろく（拡大＆光る現在位置）</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html,body{height:100%;margin:0;font-family:"Noto Sans JP",sans-serif;background:#0b1324;color:#fff;}
+  .app{display:grid;grid-template-columns:360px 1fr;height:100%;}
+  .panel{background:#111a33;padding:12px;display:flex;flex-direction:column;border-right:2px solid #1e2a4a;}
+  #map{width:100%;height:100%;}
+  h2{margin:0 0 10px;color:#7cc7ff;}
+  button{background:#1779ff;border:none;color:white;padding:10px 14px;border-radius:8px;margin:5px 5px 0 0;font-weight:bold;cursor:pointer;}
+  #log{background:#0f1730;flex:1;overflow-y:auto;margin-top:10px;border-radius:8px;padding:8px;font-size:14px;color:#a9c4ff;}
+  #diceDisplay{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.6);padding:40px 70px;border-radius:20px;font-size:64px;font-weight:bold;display:none;z-index:9999;}
+  #photoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:9999;}
+  #photoModal img{max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,.5);}
+  /* 🔆 光る現在位置パルス */
+  .pulse-ring {
+    border: 4px solid #FFD93D;
+    border-radius: 50%;
+    height: 40px; width: 40px;
+    position: absolute;
+    animation: pulsate 1.5s ease-out infinite;
+    opacity: 0.0;
+  }
+  @keyframes pulsate {
+    0% { transform: scale(0.3); opacity: 0.7; }
+    100% { transform: scale(2.5); opacity: 0.0; }
+  }
+</style>
 </head>
 <body>
 <div class="app">
@@ -42,10 +52,8 @@
 <div id="photoModal"><img id="photoView" src=""></div>
 
 <script>
-// === 高知スポット25件以上 ===
-const ROUTE = [
-  // あなたのJSONをそのまま貼り付けてもOK
-  {"name":"高知城（スタート）","lat":33.560674,"lng":133.531532,"kind":"start","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Kochi_Castle_Main_Tower.jpg/640px-Kochi_Castle_Main_Tower.jpg","info":"江戸時代の藩主山内氏による城郭。天守・本丸御殿などが現存し、城下町高知の中心。","category":"歴史建築","event":{"type":"info"}},
+const ROUTE=[
+   {"name":"高知城（スタート）","lat":33.560674,"lng":133.531532,"kind":"start","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Kochi_Castle_Main_Tower.jpg/640px-Kochi_Castle_Main_Tower.jpg","info":"江戸時代の藩主山内氏による城郭。天守・本丸御殿などが現存し、城下町高知の中心。","category":"歴史建築","event":{"type":"info"}},
   {"name":"高知城歴史博物館","lat":33.5609,"lng":133.5325,"kind":"checkpoint","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Kochi_Castle_History_Museum.jpg/640px-Kochi_Castle_History_Museum.jpg","info":"土佐藩の歴史や文化を学べる博物館。","category":"博物館／歴史","event":{"type":"info"}},
   {"name":"城西公園","lat":33.5632,"lng":133.5318,"kind":"checkpoint","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Josei_Park_Kochi.jpg/640px-Josei_Park_Kochi.jpg","info":"高知城の西側に広がる市民公園。桜の名所として人気。","category":"公園／休憩","event":{"type":"chance"}},
   {"name":"土佐の日曜市","lat":33.561474,"lng":133.538004,"kind":"checkpoint","img":"https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Tosa_Nichiyouichi.jpg/640px-Tosa_Nichiyouichi.jpg","info":"元禄3年から続く街路市。地元の野菜や金物が並ぶ。","category":"市場／生活文化","event":{"type":"buy","price":500,"item":"新鮮野菜セット"}},
@@ -72,11 +80,9 @@ const ROUTE = [
 ];
 
 const CHANCE=[
-  {text:"よさこい祭りに飛び入り参加！元気をもらって1マス進む。",effect:{move:+1}},
-  {text:"雨で市場が中止。-¥300。",effect:{money:-300}},
   {text:"地元の人からおすそ分け！+¥400。",effect:{money:+400}},
-  {text:"観光客に道案内して感謝された！+¥200。",effect:{money:+200}},
-  {text:"坂本龍馬像の前で記念撮影！+¥300。",effect:{money:+300}},
+  {text:"雨で市場が中止。-¥300。",effect:{money:-300}},
+  {text:"よさこい祭りに飛び入り参加！+¥200。",effect:{money:+200}},
 ];
 
 const $=s=>document.querySelector(s);
@@ -84,29 +90,22 @@ const log=m=>{const p=document.createElement("div");p.textContent=m;$("#log").pr
 const fmt=v=>"¥"+v.toLocaleString();
 
 // === 地図 ===
-const map=L.map("map").setView([33.5589,133.543],12);
+const map=L.map("map",{center:[33.5606,133.5345],zoom:15,touchZoom:true,scrollWheelZoom:true});
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
-
 const latlngs=ROUTE.map(p=>[p.lat,p.lng]);
 L.polyline(latlngs,{color:"#7cc7ff",weight:4}).addTo(map);
 
 const markers=ROUTE.map((p,i)=>{
-  const popup=`
-  <div style="width:240px;color:#fff;background:linear-gradient(180deg,#0b1324,#111a33);border-radius:10px;padding:8px;">
+  const popup=`<div style="width:240px;color:#fff;background:linear-gradient(180deg,#0b1324,#111a33);border-radius:10px;padding:8px;">
     ${p.img?`<img src="${p.img}" class="popup-image" style="width:100%;border-radius:8px;margin-bottom:6px;cursor:zoom-in;">`:""}
-    <b style="color:#7cc7ff;">${i}. ${p.name}</b><br>
-    <small style="color:#a9c4ff;">${p.category}</small>
-    <hr style="border:1px solid #1e2a4a;">
-    <div style="font-size:13px;line-height:1.4;">
-    ${p.info}
-    </div>
-  </div>`;
+    <b style="color:#7cc7ff;">${i}. ${p.name}</b><br><small style="color:#a9c4ff;">${p.category}</small>
+    <hr style="border:1px solid #1e2a4a;"><div style="font-size:13px;line-height:1.4;">${p.info}</div></div>`;
   const m=L.marker([p.lat,p.lng]).addTo(map);
   m.bindPopup(popup);
   return m;
 });
 
-// === 全画面画像モーダル ===
+// === モーダル画像 ===
 document.body.addEventListener("click",e=>{
   if(e.target.classList.contains("popup-image")){
     $("#photoView").src=e.target.src;
@@ -115,16 +114,19 @@ document.body.addEventListener("click",e=>{
 });
 $("#photoModal").onclick=()=>$("#photoModal").style.display="none";
 
-// === プレイヤー状態 ===
-let state={pos:0,money:3000,items:[],finished:false};
-const player=L.circleMarker(latlngs[0],{radius:8,color:"#7cc7ff",fillColor:"#7cc7ff",fillOpacity:.9}).addTo(map);
+// === 現在位置マーカー（光るリング） ===
+const playerMarker=L.circleMarker(latlngs[0],{radius:6,color:"#00BFFF",fillColor:"#00BFFF",fillOpacity:1}).addTo(map);
+const pulseDiv=L.divIcon({className:"pulse-ring"});
+const pulseMarker=L.marker(latlngs[0],{icon:pulseDiv,interactive:false}).addTo(map);
 
+// === 状態管理 ===
+let state={pos:0,money:3000,finished:false};
 function updateHUD(){
   $("#pos").textContent=`${state.pos} / ${ROUTE.length-1}`;
   $("#money").textContent=fmt(state.money);
 }
 
-// === サイコロ演出 ===
+// === サイコロ ===
 function showDice(num){
   const d=$("#diceDisplay");
   d.textContent=`🎲 ${num}`;
@@ -133,16 +135,19 @@ function showDice(num){
 }
 const rollDice=()=>1+Math.floor(Math.random()*6);
 
-// === アニメーション移動 ===
+// === アニメ移動 ===
 function movePlayer(steps){
   const goal=Math.min(state.pos+steps,ROUTE.length-1);
   function step(){
     if(state.pos<goal){
       state.pos++;
-      player.setLatLng([ROUTE[state.pos].lat,ROUTE[state.pos].lng]);
+      const coord=[ROUTE[state.pos].lat,ROUTE[state.pos].lng];
+      playerMarker.setLatLng(coord);
+      pulseMarker.setLatLng(coord);
+      map.flyTo(coord,16,{animate:true,duration:0.8});
       log(`🚶‍♂️ ${ROUTE[state.pos].name} に到着`);
       updateHUD();
-      setTimeout(step,600);
+      setTimeout(step,700);
     }else{
       onLand(ROUTE[state.pos]);
     }
@@ -150,61 +155,46 @@ function movePlayer(steps){
   step();
 }
 
-// === イベント処理 ===
+// === イベント ===
 function onLand(tile){
-  map.panTo([tile.lat,tile.lng]);
   markers[state.pos].openPopup();
   const ev=tile.event;
   if(tile.kind==="goal"){
-    alert(`🎉 ゴール！${tile.name}に到着！\nおめでとうございます！\n最終所持金：${fmt(state.money)}`);
+    alert(`🎉 ゴール！${tile.name}に到着！\n最終所持金：${fmt(state.money)}`);
     log(`🏁 ${tile.name}ゴール！ゲームクリア！`);
     state.finished=true;
     return;
   }
-  switch(ev.type){
-    case"info":
-      state.items.push(tile.name);
-      log(`📖 ${tile.name}のカードを入手。`);
-      break;
-    case"buy":
-      if(state.money>=ev.price && confirm(`${tile.name}\n${fmt(ev.price)}で${ev.item}を購入しますか？`)){
-        state.money-=ev.price;
-        state.items.push(ev.item);
-        log(`🛍️ ${ev.item}を購入。`);
-      }else log("💸 所持金が足りません。");
-      break;
-    case"quiz":
-      const ans=prompt(`${ev.q}\n${ev.a.map((a,i)=>`${i+1}. ${a}`).join("\n")}`);
-      if(Number(ans)-1===ev.correct){state.money+=ev.reward;log(`✅ 正解！${fmt(ev.reward)}獲得。`);}
-      else{state.money-=200;log(`❌ 不正解。-¥200。`);}
-      break;
-    case"chance":
-      const c=CHANCE[Math.floor(Math.random()*CHANCE.length)];
-      alert(`チャンス！\n${c.text}`);
-      if(c.effect.money)state.money+=c.effect.money;
-      if(c.effect.move)movePlayer(c.effect.move);
-      log(`🎴 ${c.text}`);
-      break;
+  if(ev.type==="buy"){
+    if(state.money>=ev.price && confirm(`${tile.name}\n${fmt(ev.price)}で${ev.item}を購入しますか？`)){
+      state.money-=ev.price;log(`🛍️ ${ev.item}を購入。`);
+    }else log("💸 所持金が足りません。");
+  }else if(ev.type==="chance"){
+    const c=CHANCE[Math.floor(Math.random()*CHANCE.length)];
+    alert(`チャンス！\n${c.text}`);
+    if(c.effect.money)state.money+=c.effect.money;
+    log(`🎴 ${c.text}`);
+  }else{
+    log(`📍 ${tile.name}：${tile.category}`);
   }
   updateHUD();
 }
 
-// === ボタン ===
+// === 操作 ===
 $("#rollBtn").onclick=()=>{
-  if(state.finished){alert("🎉 もうゴールしました！リセットして再挑戦しましょう。");return;}
+  if(state.finished){alert("🎉 ゴールしました。リセットで再挑戦！");return;}
   const d=rollDice();
   showDice(d);
-  log(`🎲 サイコロ: ${d}`);
   movePlayer(d);
 };
 $("#resetBtn").onclick=()=>{
-  state={pos:0,money:3000,items:[],finished:false};
-  player.setLatLng(latlngs[0]);
+  state={pos:0,money:3000,finished:false};
+  playerMarker.setLatLng(latlngs[0]);
+  pulseMarker.setLatLng(latlngs[0]);
   updateHUD();
   log("🔄 リセットしました。");
 };
 
-// === 初期化 ===
 updateHUD();
 log("👣 高知城から旅を始めよう！");
 </script>
